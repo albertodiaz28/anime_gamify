@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Category } from '@anime-gamify/shared-types';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../auth';
 import { CategoriesService } from './categories.service';
 
 @ApiTags('categories')
