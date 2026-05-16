@@ -1,2 +1,6 @@
 - [START] feat/backend-domain — starting animes + episodes
 - [DONE] feat/backend-domain — pending-commit — 19 files
+- [START] feat/frontend-features — starting catalog/detail/player/profile
+- [DONE] feat/frontend-features — pending-commit — ~28 files
+- [START] feat/backend-social — starting ratings + comments + gamification
+- [DONE] feat/backend-social — pending-commit — 32 files (21 tests passing)

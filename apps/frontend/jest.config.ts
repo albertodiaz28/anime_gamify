@@ -1,11 +1,17 @@
 export default {
   displayName: 'frontend',
-  preset: '../../jest.preset.js',
-  setupFilesAfterEach: ['<rootDir>/src/test-setup.ts'],
-  globals: {},
+  preset: 'jest-preset-angular',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
+  globalSetup: 'jest-preset-angular/global-setup',
   coverageDirectory: '../../coverage/apps/frontend',
+  testMatch: ['<rootDir>/src/**/*.spec.ts'],
+  moduleNameMapper: {
+    '^@anime-gamify/shared-types$': '<rootDir>/../../libs/shared-types/src/index.ts',
+    '^@anime-gamify/shared-constants$': '<rootDir>/../../libs/shared-constants/src/index.ts',
+  },
   transform: {
-    '^.+\\.(ts|mjs|js|html)$': [
+    '^.+\\.(ts|mjs|js|html|svg)$': [
       'jest-preset-angular',
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
@@ -14,9 +20,4 @@ export default {
     ],
   },
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
-  snapshotSerializers: [
-    'jest-preset-angular/build/serializers/no-ng-attributes',
-    'jest-preset-angular/build/serializers/ng-snapshot',
-    'jest-preset-angular/build/serializers/html-comment',
-  ],
 };

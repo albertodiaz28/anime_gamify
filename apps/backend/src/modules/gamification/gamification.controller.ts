@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Skill, UserProgress, UserSkill, WatchResult } from '@anime-gamify/shared-types';
-import { CurrentUser, Public, type AuthenticatedUser } from '../auth';
+import { CurrentUser, Public } from '../auth/decorators';
+import type { AuthenticatedUser } from '../auth/types';
 import { ProgressService } from './services/progress.service';
 import { SkillsService } from './services/skills.service';
 import { WatchService } from './services/watch.service';

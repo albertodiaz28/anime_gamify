@@ -58,7 +58,9 @@ function mapLanguageKey(key: string): Language {
 
 function collectScripts($: CheerioAPI): string {
   const parts: string[] = [];
-  $('script').each((_, el) => parts.push($(el).html() ?? ''));
+  $('script').each((_, el) => {
+    parts.push($(el).html() ?? '');
+  });
   return parts.join('\n');
 }
 

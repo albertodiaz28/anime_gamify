@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { RatingAggregate } from '@anime-gamify/shared-types';
-import { CurrentUser, Public, type AuthenticatedUser } from '../auth';
+import { CurrentUser, Public } from '../auth/decorators';
+import type { AuthenticatedUser } from '../auth/types';
 import { RateAnimeDto } from './dto/rate-anime.dto';
 import { RatingsService } from './ratings.service';
 

@@ -1,7 +1,7 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AnimeCard, AnimeDetail, CursorPage } from '@anime-gamify/shared-types';
-import { Public } from '../auth';
+import { Public } from '../auth/decorators';
 import { CatalogQueryDto } from './dto/catalog-query.dto';
 import { AnimeCatalogService } from './services/anime-catalog.service';
 import { AnimeDetailService } from './services/anime-detail.service';

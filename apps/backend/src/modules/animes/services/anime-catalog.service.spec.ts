@@ -34,7 +34,7 @@ const createQueryBuilderMock = (rows: AnimeEntity[]) => {
     orderBy: [],
     takeValue: 0,
   };
-  const qb = {
+  const qb: any = {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     andWhere: jest.fn((sql: unknown, params?: Record<string, unknown>) => {
       const text = typeof sql === 'function' ? '<sub>' : String(sql);

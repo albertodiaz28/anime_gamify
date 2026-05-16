@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { runInInjectionContext, EnvironmentInjector } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { authGuard } from './auth.guard';
@@ -23,7 +24,7 @@ describe('authGuard', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient()],
     });
     router = TestBed.inject(Router);
   });

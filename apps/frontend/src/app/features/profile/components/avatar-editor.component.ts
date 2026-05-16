@@ -20,7 +20,8 @@ interface CosmeticOption {
   slot: Slot;
 }
 
-const SINGLE_SLOTS: Slot[] = ['hair', 'eyes', 'outfit', 'background'];
+type SingleSlot = Exclude<Slot, 'accessory'>;
+const SINGLE_SLOTS: SingleSlot[] = ['hair', 'eyes', 'outfit', 'background'];
 
 @Component({
   selector: 'ag-avatar-editor',

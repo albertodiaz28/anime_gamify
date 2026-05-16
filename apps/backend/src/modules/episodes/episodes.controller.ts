@@ -1,7 +1,7 @@
 import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Episode, Language, Server } from '@anime-gamify/shared-types';
-import { Public } from '../auth';
+import { Public } from '../auth/decorators';
 import { EpisodesService } from './episodes.service';
 
 @ApiTags('episodes')

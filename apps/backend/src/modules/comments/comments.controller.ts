@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Comment, CursorPage } from '@anime-gamify/shared-types';
-import { CurrentUser, Public, type AuthenticatedUser } from '../auth';
+import { CurrentUser, Public } from '../auth/decorators';
+import type { AuthenticatedUser } from '../auth/types';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { ListCommentsQueryDto } from './dto/list-comments-query.dto';
