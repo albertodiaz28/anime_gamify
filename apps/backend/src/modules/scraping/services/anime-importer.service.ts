@@ -55,7 +55,7 @@ export class AnimeImporterService {
     animeId: string,
     categoryNames: string[],
   ): Promise<void> {
-    await trx.query(`DELETE FROM anime_category WHERE anime_id = $1`, [animeId]);
+    await trx.query(`DELETE FROM anime_categories WHERE anime_id = $1`, [animeId]);
     for (const name of categoryNames) {
       const slug = slugify(name);
       const rows = (await trx.query(
@@ -67,7 +67,7 @@ export class AnimeImporterService {
       const categoryId = rows[0]?.id;
       if (!categoryId) continue;
       await trx.query(
-        `INSERT INTO anime_category (anime_id, category_id) VALUES ($1, $2)
+        `INSERT INTO anime_categories (anime_id, category_id) VALUES ($1, $2)
          ON CONFLICT DO NOTHING`,
         [animeId, categoryId],
       );
