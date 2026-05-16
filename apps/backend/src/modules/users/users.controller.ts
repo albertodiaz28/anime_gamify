@@ -1,8 +1,7 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { User } from '@anime-gamify/shared-types';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { CurrentUser, type AuthenticatedUser } from '../auth';
 import { UpdateAvatarDto } from './dto/update-avatar.dto';
 import { UsersService } from './users.service';
 
