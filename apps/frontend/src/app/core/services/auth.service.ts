@@ -72,6 +72,15 @@ export class AuthService {
     }
   }
 
+  applyProgress(progress: { xp: number; level: number }): void {
+    const current = this.userSignal();
+    if (!current) {
+      return;
+    }
+    const updated: User = { ...current, xp: progress.xp, level: progress.level };
+    this.setCurrentUser(updated);
+  }
+
   setCurrentUser(user: User): void {
     this.userSignal.set(user);
     if (typeof localStorage !== 'undefined') {

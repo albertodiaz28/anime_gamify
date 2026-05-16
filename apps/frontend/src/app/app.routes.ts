@@ -26,6 +26,11 @@ export const appRoutes: Routes = [
           ),
       },
       {
+        path: 'player',
+        loadChildren: () =>
+          import('./features/player/player.routes').then((m) => m.playerRoutes),
+      },
+      {
         path: 'profile',
         loadChildren: () =>
           import('./features/profile/profile.routes').then((m) => m.profileRoutes),
