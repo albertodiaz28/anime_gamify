@@ -59,7 +59,7 @@ export class BrowserService implements OnModuleDestroy {
     if (this.browser) return this.browser;
     this.logger.log('Launching Puppeteer browser');
     const launched = (await puppeteerExtra.launch({
-      headless: 'new',
+      headless: true,
       args: [...PUPPETEER_ARGS],
     })) as unknown as Browser;
     this.browser = launched;
