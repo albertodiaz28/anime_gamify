@@ -4,8 +4,8 @@ import { DataSource, Repository } from 'typeorm';
 import type { WatchResult } from '@anime-gamify/shared-types';
 import { XP_PER_EPISODE } from '@anime-gamify/shared-constants';
 import { EpisodeEntity } from '../../episodes/entities/episode.entity';
+import { SkillEntity } from '../entities/skill.entity';
 import { WatchedEpisodeEntity } from '../entities/watched-episode.entity';
-import { UserSkillEntity } from '../entities/user-skill.entity';
 import { LevelService } from './level.service';
 
 @Injectable()
@@ -14,8 +14,8 @@ export class WatchService {
     @InjectDataSource() private readonly dataSource: DataSource,
     @InjectRepository(EpisodeEntity)
     private readonly episodes: Repository<EpisodeEntity>,
-    @InjectRepository(UserSkillEntity)
-    private readonly userSkills: Repository<UserSkillEntity>,
+    @InjectRepository(SkillEntity)
+    private readonly skills: Repository<SkillEntity>,
     private readonly levelService: LevelService,
   ) {}
 
@@ -27,7 +27,7 @@ export class WatchService {
     }
     const levelResult = await this.levelService.addXp(userId, XP_PER_EPISODE);
     const unlocked = levelResult.leveledUp
-      ? await this.fetchSkillsUnlockedAt(userId, levelResult.newLevel)
+      ? await this.fetchNewlyUnlockedSkills(levelResult.oldLevel, levelResult.newLevel)
       : [];
     return {
       alreadyWatched: false,
@@ -57,14 +57,16 @@ export class WatchService {
     return (result.identifiers?.length ?? 0) > 0;
   }
 
-  private async fetchSkillsUnlockedAt(userId: string, level: number): Promise<string[]> {
-    const rows = await this.userSkills
-      .createQueryBuilder('us')
-      .innerJoin('skills', 's', 's.id = us.skill_id')
-      .where('us.user_id = :userId', { userId })
-      .andWhere('s.required_level <= :level', { level })
-      .getMany();
-    return rows.map((row) => row.skillId);
+  private async fetchNewlyUnlockedSkills(oldLevel: number, newLevel: number): Promise<string[]> {
+    const rows = await this.skills
+      .createQueryBuilder('s')
+      .select('s.id', 'id')
+      .where('s.required_level > :old AND s.required_level <= :new', {
+        old: oldLevel,
+        new: newLevel,
+      })
+      .getRawMany<{ id: string }>();
+    return rows.map((row) => row.id);
   }
 
   private async buildAlreadyWatchedResult(userId: string): Promise<WatchResult> {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
-import type { Rating, RatingAggregate } from '@anime-gamify/shared-types';
+import type { RatingAggregate } from '@anime-gamify/shared-types';
 import { XP_PER_RATING } from '@anime-gamify/shared-constants';
 import { LevelService } from '../gamification/services/level.service';
 import { RatingEntity } from './entities/rating.entity';
@@ -18,8 +18,8 @@ export class RatingsService {
     private readonly levelService: LevelService,
   ) {}
 
-  async upsertRating(userId: string, animeId: string, score: number): Promise<Rating> {
-    const { rating, isNew } = await this.dataSource.transaction(async (manager) => {
+  async upsertRating(userId: string, animeId: string, score: number): Promise<RatingAggregate> {
+    const { isNew } = await this.dataSource.transaction(async (manager) => {
       const result = await this.persistRating(manager, userId, animeId, score);
       await this.refreshAnimeAggregate(manager, animeId);
       return result;
@@ -27,7 +27,7 @@ export class RatingsService {
     if (isNew) {
       await this.levelService.addXp(userId, XP_PER_RATING);
     }
-    return this.toRating(rating);
+    return this.getAggregate(animeId);
   }
 
   async getAggregate(animeId: string): Promise<RatingAggregate> {
@@ -43,6 +43,13 @@ export class RatingsService {
       avg: row ? Number(row.avg ?? 0) : 0,
       count: row ? Number(row.count) : 0,
     };
+  }
+
+  async findMine(userId: string, animeId: string): Promise<{ score: number } | null> {
+    const row = await this.dataSource
+      .getRepository(RatingEntity)
+      .findOne({ where: { userId, animeId } });
+    return row ? { score: row.score } : null;
   }
 
   private async persistRating(
@@ -72,15 +79,5 @@ export class RatingsService {
        WHERE "id" = $1`,
       [animeId],
     );
-  }
-
-  private toRating(entity: RatingEntity): Rating {
-    return {
-      userId: entity.userId,
-      animeId: entity.animeId,
-      score: entity.score,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
-    };
   }
 }
