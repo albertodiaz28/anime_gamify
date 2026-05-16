@@ -6,13 +6,13 @@ jest.mock('../../episodes/entities/episode.entity', () => ({
 }));
 
 import { EpisodeEntity } from '../../episodes/entities/episode.entity';
-import { UserSkillEntity } from '../entities/user-skill.entity';
+import { SkillEntity } from '../entities/skill.entity';
 import { LevelService } from './level.service';
 import { WatchService } from './watch.service';
 
 describe('WatchService', () => {
   let episodes: jest.Mocked<Repository<EpisodeEntity>>;
-  let userSkills: jest.Mocked<Repository<UserSkillEntity>>;
+  let skills: jest.Mocked<Repository<SkillEntity>>;
   let levelService: jest.Mocked<LevelService>;
   let dataSource: { createQueryBuilder: jest.Mock; getRepository: jest.Mock };
   let service: WatchService;
@@ -22,9 +22,9 @@ describe('WatchService', () => {
     episodes = {
       findOne: jest.fn().mockResolvedValue({ id: 'ep-1' } as EpisodeEntity),
     } as unknown as jest.Mocked<Repository<EpisodeEntity>>;
-    userSkills = {
+    skills = {
       createQueryBuilder: jest.fn(),
-    } as unknown as jest.Mocked<Repository<UserSkillEntity>>;
+    } as unknown as jest.Mocked<Repository<SkillEntity>>;
     levelService = {
       addXp: jest.fn(),
     } as unknown as jest.Mocked<LevelService>;
@@ -48,7 +48,7 @@ describe('WatchService', () => {
     service = new WatchService(
       dataSource as unknown as DataSource,
       episodes,
-      userSkills,
+      skills,
       levelService,
     );
   });
@@ -79,7 +79,7 @@ describe('WatchService', () => {
     expect(levelService.addXp).not.toHaveBeenCalled();
   });
 
-  it('fetches unlocked skills after a level-up', async () => {
+  it('fetches newly unlocked skills after a level-up', async () => {
     insertExecute.mockResolvedValue({ identifiers: [{ user_id: 'u1', episode_id: 'ep-1' }] });
     levelService.addXp.mockResolvedValue({
       newXp: 1000,
@@ -87,11 +87,10 @@ describe('WatchService', () => {
       newLevel: 3,
       leveledUp: true,
     });
-    userSkills.createQueryBuilder.mockReturnValue({
-      innerJoin: jest.fn().mockReturnThis(),
+    skills.createQueryBuilder.mockReturnValue({
+      select: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue([{ skillId: 's-1' }, { skillId: 's-2' }]),
+      getRawMany: jest.fn().mockResolvedValue([{ id: 's-1' }, { id: 's-2' }]),
     } as never);
 
     const result = await service.recordWatch('u1', 'ep-1');
