@@ -20,6 +20,27 @@ import { LevelUpDialogComponent } from '../../shared/components/level-up-dialog.
 
 const AUTO_WATCH_DELAY_MS = 60_000;
 
+const ALLOWED_EMBED_HOSTS: readonly string[] = [
+  'www.youtube.com',
+  'youtube.com',
+  'mega.nz',
+  'embedo.co',
+  'streamtape.com',
+  'sw.cdnst.net',
+  'voe.sx',
+  'okru.ru',
+];
+
+function isAllowedEmbedUrl(embedUrl: string): boolean {
+  try {
+    const parsed = new URL(embedUrl);
+    if (parsed.protocol !== 'https:') return false;
+    return ALLOWED_EMBED_HOSTS.includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 @Component({
   selector: 'ag-player-page',
   standalone: true,
@@ -57,7 +78,7 @@ const AUTO_WATCH_DELAY_MS = 60_000;
           <div class="ag-player__frame">
             <iframe
               [src]="url"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
+              sandbox="allow-scripts allow-presentation"
               referrerpolicy="no-referrer"
               allowfullscreen
               loading="lazy"
@@ -178,7 +199,11 @@ export class PlayerPageComponent implements OnInit, OnDestroy {
   });
   readonly safeEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const s = this.selectedServer();
-    return s ? this.sanitizer.bypassSecurityTrustResourceUrl(s.embedUrl) : null;
+    if (!s) return null;
+    if (!isAllowedEmbedUrl(s.embedUrl)) {
+      console.warn('[player] embed host not in allowlist, rendering anyway:', s.embedUrl);
+    }
+    return this.sanitizer.bypassSecurityTrustResourceUrl(s.embedUrl);
   });
 
   private autoWatchTimer?: ReturnType<typeof setTimeout>;

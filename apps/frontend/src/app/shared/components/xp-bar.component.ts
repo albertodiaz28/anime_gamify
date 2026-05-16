@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { xpInCurrentLevel, xpToNext } from '@anime-gamify/shared-constants';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -29,5 +30,10 @@ import { AuthService } from '../../core/services/auth.service';
 export class XpBarComponent {
   private readonly authService = inject(AuthService);
   readonly xp = computed(() => this.authService.currentUser()?.xp ?? 0);
-  readonly xpPercent = computed(() => Math.min(100, this.xp() % 100));
+  readonly level = computed(() => this.authService.currentUser()?.level ?? 1);
+  readonly xpPercent = computed(() => {
+    const inCurrent = xpInCurrentLevel(this.xp());
+    const toNext = xpToNext(this.level());
+    return toNext > 0 ? Math.min(100, (inCurrent / toNext) * 100) : 100;
+  });
 }
