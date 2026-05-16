@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Anime Gamify — Plan MVP</title>
+<style>
+  :root {
+    --bg: #0f1117; --panel: #1a1d27; --border: #2a2f3d; --text: #e6e9ef;
+    --muted: #8a93a6; --accent: #7c5cff; --code-bg: #11141c;
+  }
+  body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.65; }
+  main { max-width: 900px; margin: 0 auto; padding: 48px 32px 80px; }
+  h1 { font-size: 28px; border-bottom: 2px solid var(--accent); padding-bottom: 12px; }
+  h2 { font-size: 22px; margin-top: 40px; color: var(--accent); }
+  h3 { font-size: 17px; margin-top: 28px; color: #b9c2d8; }
+  h4 { font-size: 15px; margin-top: 18px; color: #d3d9e8; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; color: #ffb86c; }
+  pre { background: var(--code-bg); padding: 16px; border-radius: 8px;
+    overflow-x: auto; border: 1px solid var(--border); font-size: 13px; }
+  pre code { background: transparent; padding: 0; color: #e6e9ef; }
+  ul, ol { padding-left: 24px; }
+  li { margin: 4px 0; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+  strong { color: #fff; }
+  a { color: var(--accent); }
+  blockquote { border-left: 3px solid var(--accent); padding-left: 16px; color: var(--muted); margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  th { background: var(--panel); }
+</style>
+</head>
+<body>
+<main>
+<h1>Plan: MVP Anime Gamify (Angular + NestJS)</h1>
+
+<h2>Context</h2>
+<p>Construir un MVP de una página web de anime con sistema de gamificación. Los usuarios podrán registrarse, explorar animes scrapeados desde <strong>AnimeFLV</strong>, buscarlos/filtrarlos por múltiples criterios, puntuarlos, comentarlos y subir de nivel desbloqueando recompensas en función de los capítulos que vean. El scraping es <strong>one-shot</strong> (se ejecuta una sola vez para poblar la BD, dado que es un MVP). Stack: Angular (frontend), NestJS (backend), PostgreSQL + TypeORM, JWT auth. Monorepo Nx. El diseño visual se delegará a la skill <code>ui-ux-pro-max</code>.</p>
+
+<hr>
+
+<h2>1. Inicialización</h2>
+<pre><code># 1. Skill UI
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+
+# 2. Monorepo Nx
+npx create-nx-workspace@latest anime-gamify --preset=apps --packageManager=npm
+cd anime-gamify
+npx nx add @nx/angular
+npx nx add @nx/nest
+npx nx g @nx/angular:app frontend --routing --style=scss --standalone
+npx nx g @nx/nest:app backend
+
+# 3. Git
+git init &amp;&amp; git add . &amp;&amp; git commit -m "chore: initial scaffold"
+gh repo create anime-gamify --private --source=. --push
+</code></pre>
+
+<h2>2. Estructura del monorepo</h2>
+<pre><code>anime-gamify/
+├── apps/
+│   ├── frontend/        # Angular standalone
+│   └── backend/         # NestJS
+├── libs/
+│   ├── shared-types/    # Interfaces compartidas
+│   └── shared-constants/# Niveles, XP por capítulo
+├── rules.md             # Reglas para agentes
+├── PLAN.md / PLAN.html  # Plan general
+├── TASKS.html           # Checklist de tareas
+├── README.md
+└── nx.json</code></pre>
+
+<h2>3. Backend (NestJS) — Módulos</h2>
+
+<h3>3.1 auth</h3>
+<ul>
+  <li><code>POST /auth/register</code> — email, password (bcrypt), username</li>
+  <li><code>POST /auth/login</code> — devuelve JWT</li>
+  <li>Guard <code>JwtAuthGuard</code> global con <code>@Public()</code>; Passport + <code>@nestjs/jwt</code></li>
+</ul>
+
+<h3>3.2 users</h3>
+<ul>
+  <li>Entity: <code>id, email, passwordHash, username, level, xp, unlockedSkills[], avatarConfig (jsonb), createdAt</code></li>
+  <li><code>GET /users/me</code>, <code>PATCH /users/me/avatar</code></li>
+</ul>
+
+<h3>3.3 categories</h3>
+<ul>
+  <li>Entity: <code>id, slug, name</code> + seed inicial (acción, romance, shounen, ...)</li>
+  <li><code>GET /categories</code></li>
+</ul>
+
+<h3>3.4 animes (núcleo)</h3>
+<ul>
+  <li>Entity <code>Anime</code>: <code>id, externalId, title, description, coverUrl, totalEpisodes, seasons, status</code></li>
+  <li>ManyToMany con <code>Category</code>; OneToMany con <code>Episode</code></li>
+  <li><code>GET /animes</code> con query params: <code>q, categoryId, minEpisodes, maxEpisodes, language, season, sort, cursor, limit</code></li>
+  <li><code>GET /animes/:id</code> (incluye episodios + servidores)</li>
+</ul>
+<blockquote><strong>Performance (crítico):</strong>
+<ul>
+  <li>Usar <strong>TypeORM <code>QueryBuilder</code></strong> desde el inicio, NO <code>repository.find()</code></li>
+  <li>Filtros como <code>andWhere</code> condicional; <code>language</code> requiere joins a <code>episodes → servers</code>; <code>categoryId</code> join al pivot</li>
+  <li><strong>Paginación por cursor</strong>, basada en <code>(sortKey, id)</code></li>
+  <li>Índices: <code>title (gin trigram)</code>, <code>totalEpisodes</code>, <code>server.language</code>, <code>episode.animeId</code>, pivot <code>anime_category</code></li>
+  <li>Búsqueda fuzzy con extensión <code>pg_trgm</code></li>
+  <li>DTOs planos (proyección) — no devolver entidades pesadas</li>
+</ul>
+</blockquote>
+
+<h3>3.5 episodes</h3>
+<ul>
+  <li><code>Episode</code>: <code>id, animeId, number, title</code></li>
+  <li><code>Server</code>: <code>id, episodeId, name, embedUrl, language</code> (ES, LAT, JP-SUB, ...)</li>
+</ul>
+
+<h3>3.6 scraping (CLI one-shot)</h3>
+<ul>
+  <li><code>nx run backend:scrape</code> (nest-commander)</li>
+  <li><strong>Stack obligatorio: <code>puppeteer-extra</code> + <code>puppeteer-extra-plugin-stealth</code></strong> — AnimeFLV está tras Cloudflare; axios+cheerio devuelve 403</li>
+  <li>Configuración: <code>headless: 'new'</code>, args <code>--no-sandbox</code>, <code>--disable-blink-features=AutomationControlled</code>, UA rotatorio</li>
+  <li>Esperar <code>networkidle2</code>; tolerar challenge Cloudflare (timeout 30-45s)</li>
+  <li>Reutilizar <strong>una única página</strong> (cookies persistentes)</li>
+  <li>Cheerio solo sobre <code>page.content()</code> ya renderizado</li>
+  <li>Pipeline: catálogo paginado → detalle → episodios → servidores</li>
+  <li>Idempotente: upsert por <code>externalId</code></li>
+  <li>Backoff exponencial + delay aleatorio 1.5–3s</li>
+  <li><strong>Fallback:</strong> si Cloudflare bloquea persistentemente → Jikan API (MAL no oficial) para metadatos + AnimeFLV solo para servidores</li>
+</ul>
+
+<h3>3.7 ratings</h3>
+<ul>
+  <li>Entity <code>(userId, animeId, score 1-10)</code> — unique compuesto</li>
+  <li><code>POST /animes/:id/rating</code>, <code>GET /animes/:id/rating/aggregate</code></li>
+</ul>
+
+<h3>3.8 comments</h3>
+<ul>
+  <li>Entity <code>(id, userId, animeId, body, createdAt, parentId)</code></li>
+  <li>Validación longitud + sanitización XSS</li>
+</ul>
+
+<h3>3.9 gamification</h3>
+<ul>
+  <li><code>WatchedEpisode (userId, episodeId, watchedAt)</code> — unique compuesto (evita farm)</li>
+  <li><code>POST /episodes/:id/watch</code> registra y suma XP</li>
+  <li><code>LevelService</code> con tabla XP por nivel en <code>shared-constants</code></li>
+  <li>Entity <code>Skill (id, name, requiredLevel, type, payload jsonb)</code></li>
+  <li>Evento <code>UserLeveledUp</code> desbloquea skills automáticamente</li>
+  <li><code>GET /users/me/skills</code>, <code>GET /skills</code></li>
+</ul>
+
+<h3>3.10 Cross-cutting</h3>
+<ul>
+  <li><code>ValidationPipe</code> global, <code>helmet</code>, CORS, <code>@nestjs/throttler</code></li>
+  <li>Swagger en <code>/api/docs</code></li>
+  <li><code>@nestjs/config</code> + <code>.env</code> (nunca commitear)</li>
+  <li>Migrations TypeORM; <code>synchronize: false</code></li>
+</ul>
+
+<h2>4. Frontend (Angular standalone)</h2>
+<pre><code>apps/frontend/src/app/
+├── core/                # interceptors, guards, services singleton
+├── shared/              # componentes UI reutilizables (ui-ux-pro-max)
+├── features/
+│   ├── auth/
+│   ├── catalog/
+│   ├── anime-detail/
+│   ├── profile/
+│   └── player/
+└── app.routes.ts</code></pre>
+<ul>
+  <li><strong>Standalone components</strong> (no NgModules)</li>
+  <li><strong>Signals</strong> para estado local; servicios con <code>signal()</code> o <code>@ngrx/signals</code> para global ligero</li>
+  <li><code>HttpInterceptor</code> para JWT; <code>AuthGuard</code> en rutas protegidas</li>
+  <li><strong>Lazy loading</strong> por feature</li>
+  <li>Filtros del catálogo sincronizados con query params</li>
+  <li>Tailwind o Angular Material → decisión final de <code>ui-ux-pro-max</code></li>
+</ul>
+
+<h3>4.3 Gamificación visual</h3>
+<ul>
+  <li><code>LevelBadge</code> + <code>XpBar</code> en navbar y profile</li>
+  <li>Modal de level-up al detectar evento</li>
+  <li>Vista de skills bloqueadas / desbloqueadas</li>
+  <li>Avatar configurable (composición SVG por capas según <code>unlockedSkills</code>)</li>
+</ul>
+
+<h2>5. Diseño UI/UX</h2>
+<p>Delegado a la skill <code>ui-ux-pro-max</code>. Tras instalarla, invocar:</p>
+<pre><code>/ui-ux-pro-max diseña el sistema visual del MVP (paleta, tipografía,
+componentes base, layout del catálogo, detalle de anime, player con
+servidores/idiomas, perfil gamificado).</code></pre>
+
+<h2>6. Modelo de datos (resumen)</h2>
+<pre><code>User (1)──(N) Rating (N)──(1) Anime
+User (1)──(N) Comment (N)──(1) Anime
+User (1)──(N) WatchedEpisode (N)──(1) Episode
+User (N)──(N) Skill (vía UserSkill)
+Anime (N)──(N) Category
+Anime (1)──(N) Episode (1)──(N) Server</code></pre>
+
+<h2>7. Roadmap (orden sugerido)</h2>
+<ol>
+  <li>Init monorepo + apps + <code>rules.md</code></li>
+  <li>Backend: <code>auth</code> + <code>users</code> + migrations + tests</li>
+  <li>Backend: <code>Anime/Episode/Server/Category</code> + endpoints CRUD-read</li>
+  <li>Backend: scraper one-shot + ejecución inicial → poblar DB</li>
+  <li>Backend: <code>ratings</code>, <code>comments</code></li>
+  <li>Backend: <code>gamification</code> (watched, xp, skills) + eventos</li>
+  <li>Frontend: scaffold + auth + interceptor + guard</li>
+  <li>Frontend: catálogo con búsqueda y filtros</li>
+  <li>Frontend: detalle anime + player + servidores/idiomas</li>
+  <li>Frontend: ratings + comentarios</li>
+  <li>Frontend: profile + nivel + skills + avatar</li>
+  <li>Invocar <code>ui-ux-pro-max</code> y aplicar sistema de diseño</li>
+  <li>README + scripts npm + despliegue</li>
+</ol>
+
+<h2>8. Critical files</h2>
+<ul>
+  <li><code>rules.md</code> (raíz)</li>
+  <li><code>apps/backend/src/modules/{auth,users,animes,episodes,categories,ratings,comments,gamification,scraping}/</code></li>
+  <li><code>apps/backend/src/main.ts</code>, <code>scrape.command.ts</code></li>
+  <li><code>apps/frontend/src/app/{core,shared,features}/</code></li>
+  <li><code>libs/shared-types/src/index.ts</code>, <code>libs/shared-constants/src/levels.ts</code></li>
+  <li><code>.env.example</code>, <code>docker-compose.yml</code></li>
+</ul>
+
+<h2>9. Verificación end-to-end</h2>
+<ol>
+  <li><code>docker compose up -d</code> → <code>nx run backend:migration:run</code></li>
+  <li><code>nx run backend:scrape</code> → confirmar N animes en DB</li>
+  <li><code>nx serve backend</code> + <code>nx serve frontend</code></li>
+  <li>Registro → login → JWT presente</li>
+  <li>Catálogo con búsqueda + filtros combinados</li>
+  <li>Detalle: ratear, comentar, ver embed</li>
+  <li>"Marcar visto" → XP sube → modal level-up → skill desbloqueada</li>
+  <li>Tests verdes y Swagger operativo en <code>/api/docs</code></li>
+</ol>
+
+</main>
+</body>
+</html>

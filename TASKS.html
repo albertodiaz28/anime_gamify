@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Anime Gamify — Tareas MVP</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #1a1d27;
+    --border: #2a2f3d;
+    --text: #e6e9ef;
+    --muted: #8a93a6;
+    --accent: #7c5cff;
+    --done: #2ecc71;
+    --backend: #3aa0ff;
+    --frontend: #ff7ab6;
+    --infra: #f5a623;
+    --design: #9b59b6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  header {
+    padding: 24px 32px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 20px; }
+  .progress {
+    font-size: 14px; color: var(--muted);
+  }
+  .progress strong { color: var(--accent); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 32px 80px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; font-size: 13px; color: var(--muted); }
+  .legend span::before {
+    content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .legend .b::before { background: var(--backend); }
+  .legend .f::before { background: var(--frontend); }
+  .legend .i::before { background: var(--infra); }
+  .legend .d::before { background: var(--design); }
+  .phase {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .phase h2 {
+    margin: 0; padding: 14px 18px; font-size: 16px; background: rgba(124,92,255,0.08);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .phase h2 .count { font-size: 12px; color: var(--muted); font-weight: normal; }
+  .module {
+    padding: 8px 18px 14px; border-bottom: 1px solid var(--border);
+  }
+  .module:last-child { border-bottom: none; }
+  .module h3 {
+    font-size: 14px; margin: 14px 0 8px; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px; text-transform: uppercase;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .tag-b { background: rgba(58,160,255,0.15); color: var(--backend); }
+  .tag-f { background: rgba(255,122,182,0.15); color: var(--frontend); }
+  .tag-i { background: rgba(245,166,35,0.15); color: var(--infra); }
+  .tag-d { background: rgba(155,89,182,0.15); color: var(--design); }
+  ul.tasks { list-style: none; padding: 0; margin: 0; }
+  ul.tasks li {
+    padding: 6px 0; font-size: 13.5px; color: var(--text);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  ul.tasks input[type="checkbox"] {
+    margin-top: 4px; accent-color: var(--accent); cursor: pointer;
+    width: 16px; height: 16px; flex-shrink: 0;
+  }
+  ul.tasks label { cursor: pointer; flex: 1; }
+  ul.tasks li.done label { text-decoration: line-through; color: var(--muted); }
+  .file {
+    display: inline-block; padding: 1px 6px; font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 12px; background: rgba(255,255,255,0.05); border-radius: 4px;
+    color: #c8d0e0; border: 1px solid var(--border);
+  }
+  .hint {
+    font-size: 12px; color: var(--muted); margin: 4px 0 0 26px; font-style: italic;
+  }
+  .actions {
+    margin: 16px 0; display: flex; gap: 8px;
+  }
+  button {
+    background: var(--accent); color: white; border: none; padding: 8px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  button.secondary {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+  }
+  button:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎌 Anime Gamify — MVP task checklist</h1>
+  <div class="progress"><strong id="done">0</strong> / <span id="total">0</span> completadas (<span id="pct">0%</span>)</div>
+</header>
+
+<main>
+  <div class="legend">
+    <span class="i">Infra / setup</span>
+    <span class="b">Backend (NestJS)</span>
+    <span class="f">Frontend (Angular)</span>
+    <span class="d">Diseño (ui-ux-pro-max)</span>
+  </div>
+  <div class="actions">
+    <button onclick="resetAll()" class="secondary">Reset</button>
+    <button onclick="expandAll(true)" class="secondary">Marcar todo</button>
+    <span style="font-size:12px;color:var(--muted);align-self:center">El progreso se guarda en localStorage.</span>
+  </div>
+
+  <!-- ============ FASE 0 — INFRA ============ -->
+  <section class="phase">
+    <h2>Fase 0 — Inicialización y monorepo <span class="count tag-i">INFRA</span></h2>
+    <div class="module">
+      <h3>0.1 Setup base <span class="tag tag-i">infra</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-0-1"><label for="t-0-1">Instalar skill UI: <span class="file">npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max</span></label></li>
+        <li><input type="checkbox" id="t-0-2"><label for="t-0-2">Crear monorepo Nx: <span class="file">npx create-nx-workspace@latest anime-gamify --preset=apps</span></label></li>
+        <li><input type="checkbox" id="t-0-3"><label for="t-0-3">Añadir plugin Angular: <span class="file">nx add @nx/angular</span></label></li>
+        <li><input type="checkbox" id="t-0-4"><label for="t-0-4">Añadir plugin NestJS: <span class="file">nx add @nx/nest</span></label></li>
+        <li><input type="checkbox" id="t-0-5"><label for="t-0-5">Generar app frontend: <span class="file">nx g @nx/angular:app frontend --routing --style=scss --standalone</span></label></li>
+        <li><input type="checkbox" id="t-0-6"><label for="t-0-6">Generar app backend: <span class="file">nx g @nx/nest:app backend</span></label></li>
+        <li><input type="checkbox" id="t-0-7"><label for="t-0-7">Crear libs: <span class="file">nx g @nx/js:lib shared-types</span> y <span class="file">shared-constants</span></label></li>
+        <li><input type="checkbox" id="t-0-8"><label for="t-0-8">Configurar TypeScript strict en frontend y backend (<span class="file">tsconfig.json</span>)</label></li>
+        <li><input type="checkbox" id="t-0-9"><label for="t-0-9">ESLint + Prettier en root con reglas comunes</label></li>
+        <li><input type="checkbox" id="t-0-10"><label for="t-0-10">Configurar Husky + lint-staged (pre-commit lint)</label></li>
+        <li><input type="checkbox" id="t-0-11"><label for="t-0-11">Crear <span class="file">.env.example</span> con DB_URL, JWT_SECRET, PORT</label></li>
+        <li><input type="checkbox" id="t-0-12"><label for="t-0-12">Crear <span class="file">docker-compose.yml</span> con Postgres 16 + Adminer</label></li>
+        <li><input type="checkbox" id="t-0-13"><label for="t-0-13">Inicializar git, commit inicial, crear repo GitHub (<span class="file">gh repo create</span>)</label></li>
+        <li><input type="checkbox" id="t-0-14"><label for="t-0-14">Copiar <span class="file">rules.md</span> a la raíz (ya existe en el repo de planificación)</label></li>
+        <li><input type="checkbox" id="t-0-15"><label for="t-0-15">README inicial con instrucciones de setup local</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FASE 1 — SHARED ============ -->
+  <section class="phase">
+    <h2>Fase 1 — Librerías compartidas <span class="count tag-i">SHARED</span></h2>
+    <div class="module">
+      <h3>1.1 shared-types <span class="tag tag-i">lib</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-1-1-1"><label for="t-1-1-1">Interfaz <span class="file">User</span> (id, email, username, level, xp, avatarConfig)</label></li>
+        <li><input type="checkbox" id="t-1-1-2"><label for="t-1-1-2">Interfaz <span class="file">Anime</span>, <span class="file">Episode</span>, <span class="file">Server</span>, <span class="file">Category</span></label></li>
+        <li><input type="checkbox" id="t-1-1-3"><label for="t-1-1-3">Enum <span class="file">Language</span> (ES, LAT, JP_SUB, EN_SUB, ...)</label></li>
+        <li><input type="checkbox" id="t-1-1-4"><label for="t-1-1-4">Interfaces <span class="file">Rating</span>, <span class="file">Comment</span>, <span class="file">Skill</span>, <span class="file">WatchedEpisode</span></label></li>
+        <li><input type="checkbox" id="t-1-1-5"><label for="t-1-1-5">DTOs de respuesta paginada genérica: <span class="file">PaginatedResponse&lt;T&gt;</span> + <span class="file">CursorPage&lt;T&gt;</span></label></li>
+        <li><input type="checkbox" id="t-1-1-6"><label for="t-1-1-6">Tipos auth: <span class="file">AuthTokens</span>, <span class="file">JwtPayload</span></label></li>
+        <li><input type="checkbox" id="t-1-1-7"><label for="t-1-1-7">Export barrel <span class="file">index.ts</span></label></li>
+      </ul>
+    </div>
+    <div class="module">
+      <h3>1.2 shared-constants <span class="tag tag-i">lib</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-1-2-1"><label for="t-1-2-1"><span class="file">LEVEL_TABLE</span>: XP requerida por nivel (1..50, curva cuadrática)</label></li>
+        <li><input type="checkbox" id="t-1-2-2"><label for="t-1-2-2"><span class="file">XP_PER_EPISODE = 10</span>, bonus diario opcional</label></li>
+        <li><input type="checkbox" id="t-1-2-3"><label for="t-1-2-3">Catálogo inicial <span class="file">SKILLS_SEED</span> (cosmetic / feature, requiredLevel)</label></li>
+        <li><input type="checkbox" id="t-1-2-4"><label for="t-1-2-4">Helpers puros: <span class="file">computeLevel(xp)</span>, <span class="file">xpToNext(level)</span> con tests</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FASE 2 — BACKEND ============ -->
+  <section class="phase">
+    <h2>Fase 2 — Backend NestJS <span class="count tag-b">BACKEND</span></h2>
+
+    <div class="module">
+      <h3>2.1 Bootstrap & cross-cutting <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-1-1"><label for="t-2-1-1">Instalar deps: <span class="file">@nestjs/typeorm typeorm pg @nestjs/config @nestjs/jwt passport passport-jwt bcrypt class-validator class-transformer helmet @nestjs/throttler @nestjs/event-emitter @nestjs/swagger</span></label></li>
+        <li><input type="checkbox" id="t-2-1-2"><label for="t-2-1-2">Configurar <span class="file">ConfigModule</span> global con validación de env</label></li>
+        <li><input type="checkbox" id="t-2-1-3"><label for="t-2-1-3">Configurar <span class="file">TypeOrmModule.forRootAsync</span>, <span class="file">synchronize: false</span></label></li>
+        <li><input type="checkbox" id="t-2-1-4"><label for="t-2-1-4">Aplicar globalmente: <span class="file">ValidationPipe</span>, <span class="file">helmet</span>, CORS whitelist</label></li>
+        <li><input type="checkbox" id="t-2-1-5"><label for="t-2-1-5">Configurar <span class="file">ThrottlerModule</span> (10 req/min en auth)</label></li>
+        <li><input type="checkbox" id="t-2-1-6"><label for="t-2-1-6">Setup Swagger en <span class="file">/api/docs</span></label></li>
+        <li><input type="checkbox" id="t-2-1-7"><label for="t-2-1-7">Scripts npm: <span class="file">migration:generate</span>, <span class="file">migration:run</span>, <span class="file">migration:revert</span></label></li>
+        <li><input type="checkbox" id="t-2-1-8"><label for="t-2-1-8">Filtro global <span class="file">HttpExceptionFilter</span> con respuesta uniforme</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.2 Módulo <code>auth</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-2-1"><label for="t-2-2-1">DTOs: <span class="file">RegisterDto</span>, <span class="file">LoginDto</span> con validación</label></li>
+        <li><input type="checkbox" id="t-2-2-2"><label for="t-2-2-2"><span class="file">AuthService.register()</span>: hash bcrypt, valida email único</label></li>
+        <li><input type="checkbox" id="t-2-2-3"><label for="t-2-2-3"><span class="file">AuthService.login()</span>: compara hash, emite JWT</label></li>
+        <li><input type="checkbox" id="t-2-2-4"><label for="t-2-2-4">Estrategia <span class="file">JwtStrategy</span> (passport-jwt)</label></li>
+        <li><input type="checkbox" id="t-2-2-5"><label for="t-2-2-5">Guard <span class="file">JwtAuthGuard</span> global + decorador <span class="file">@Public()</span></label></li>
+        <li><input type="checkbox" id="t-2-2-6"><label for="t-2-2-6">Decorador <span class="file">@CurrentUser()</span></label></li>
+        <li><input type="checkbox" id="t-2-2-7"><label for="t-2-2-7">Tests unitarios service + e2e endpoints</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.3 Módulo <code>users</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-3-1"><label for="t-2-3-1">Entity <span class="file">User</span> + migration inicial (email único, passwordHash, level default 1, xp default 0, avatarConfig jsonb)</label></li>
+        <li><input type="checkbox" id="t-2-3-2"><label for="t-2-3-2"><span class="file">UsersRepository</span> con método <span class="file">findByEmail</span></label></li>
+        <li><input type="checkbox" id="t-2-3-3"><label for="t-2-3-3"><span class="file">GET /users/me</span></label></li>
+        <li><input type="checkbox" id="t-2-3-4"><label for="t-2-3-4"><span class="file">PATCH /users/me/avatar</span> validando que avatarConfig usa solo skills desbloqueadas</label></li>
+        <li><input type="checkbox" id="t-2-3-5"><label for="t-2-3-5">Tests</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.4 Módulo <code>categories</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-4-1"><label for="t-2-4-1">Entity + migration <span class="file">Category</span> (slug único)</label></li>
+        <li><input type="checkbox" id="t-2-4-2"><label for="t-2-4-2">Seed inicial: acción, romance, shounen, seinen, comedia, terror, mecha, slice-of-life...</label></li>
+        <li><input type="checkbox" id="t-2-4-3"><label for="t-2-4-3"><span class="file">GET /categories</span> público, cacheado</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.5 Módulo <code>animes</code> (núcleo) <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-5-1"><label for="t-2-5-1">Entity <span class="file">Anime</span>: id, externalId (unique), title, slug, description, coverUrl, totalEpisodes, seasons, status</label></li>
+        <li><input type="checkbox" id="t-2-5-2"><label for="t-2-5-2">Relación <span class="file">ManyToMany Category</span> (tabla pivot indexada)</label></li>
+        <li><input type="checkbox" id="t-2-5-3"><label for="t-2-5-3">Migration con índices: <span class="file">gin trigram</span> en title, btree en totalEpisodes, externalId</label></li>
+        <li><input type="checkbox" id="t-2-5-4"><label for="t-2-5-4">Habilitar extensión <span class="file">pg_trgm</span> en migration</label></li>
+        <li><input type="checkbox" id="t-2-5-5"><label for="t-2-5-5"><strong>AnimeListService.findCatalog()</strong> con <span class="file">QueryBuilder</span> (NO repository.find)</label>
+          <div class="hint">Construir condicionalmente: andWhere q ILIKE, andWhere categoryId IN pivot, andWhere joins a episode/server para language</div>
+        </li>
+        <li><input type="checkbox" id="t-2-5-6"><label for="t-2-5-6">Paginación por <strong>cursor</strong> (sort key + id como tiebreaker)</label></li>
+        <li><input type="checkbox" id="t-2-5-7"><label for="t-2-5-7">DTO <span class="file">CatalogQueryDto</span>: q, categoryId, minEpisodes, maxEpisodes, language, season, sort, cursor, limit</label></li>
+        <li><input type="checkbox" id="t-2-5-8"><label for="t-2-5-8">DTO de salida <span class="file">AnimeCardDto</span> (proyección plana, sin relaciones pesadas)</label></li>
+        <li><input type="checkbox" id="t-2-5-9"><label for="t-2-5-9"><span class="file">GET /animes/:id</span> con episodios + servers (joins controlados)</label></li>
+        <li><input type="checkbox" id="t-2-5-10"><label for="t-2-5-10">Tests del QueryBuilder con datos seed (importante: probar combinaciones de filtros)</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.6 Módulo <code>episodes</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-6-1"><label for="t-2-6-1">Entity <span class="file">Episode</span> (animeId, number, title) — unique (animeId, number)</label></li>
+        <li><input type="checkbox" id="t-2-6-2"><label for="t-2-6-2">Entity <span class="file">Server</span> (episodeId, name, embedUrl, language) — index (episodeId, language)</label></li>
+        <li><input type="checkbox" id="t-2-6-3"><label for="t-2-6-3"><span class="file">GET /animes/:id/episodes</span> con servers anidados</label></li>
+        <li><input type="checkbox" id="t-2-6-4"><label for="t-2-6-4"><span class="file">GET /episodes/:id/servers</span></label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.7 Módulo <code>scraping</code> (one-shot CLI) <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-7-1"><label for="t-2-7-1">Instalar: <span class="file">nest-commander puppeteer puppeteer-extra puppeteer-extra-plugin-stealth cheerio</span></label></li>
+        <li><input type="checkbox" id="t-2-7-2"><label for="t-2-7-2">Configurar Puppeteer con plugin stealth, headless 'new', UA realista</label></li>
+        <li><input type="checkbox" id="t-2-7-3"><label for="t-2-7-3">Reutilizar una única <span class="file">page</span> entre requests (persistir cookies de Cloudflare)</label></li>
+        <li><input type="checkbox" id="t-2-7-4"><label for="t-2-7-4">Servicio <span class="file">AnimeFlvScraper.fetchCatalogPage(page)</span></label></li>
+        <li><input type="checkbox" id="t-2-7-5"><label for="t-2-7-5">Servicio <span class="file">AnimeFlvScraper.fetchAnimeDetail(slug)</span> → título, descripción, géneros, cover, status, episodios</label></li>
+        <li><input type="checkbox" id="t-2-7-6"><label for="t-2-7-6">Servicio <span class="file">AnimeFlvScraper.fetchEpisodeServers(episodeUrl)</span> → name, embedUrl, language</label></li>
+        <li><input type="checkbox" id="t-2-7-7"><label for="t-2-7-7">Backoff exponencial + delay aleatorio 1.5–3s entre páginas</label></li>
+        <li><input type="checkbox" id="t-2-7-8"><label for="t-2-7-8">Idempotencia: upsert por <span class="file">externalId</span></label></li>
+        <li><input type="checkbox" id="t-2-7-9"><label for="t-2-7-9">Command <span class="file">scrape</span> (nest-commander) con flags <span class="file">--limit</span>, <span class="file">--from-page</span>, <span class="file">--dry-run</span></label></li>
+        <li><input type="checkbox" id="t-2-7-10"><label for="t-2-7-10">Script npm: <span class="file">nx run backend:scrape</span></label></li>
+        <li><input type="checkbox" id="t-2-7-11"><label for="t-2-7-11">Logs estructurados con progreso (n animes / n episodios)</label></li>
+        <li><input type="checkbox" id="t-2-7-12"><label for="t-2-7-12">Si Cloudflare bloquea: <strong>fallback Jikan API</strong> documentado para metadatos</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.8 Módulo <code>ratings</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-8-1"><label for="t-2-8-1">Entity <span class="file">Rating</span> (userId, animeId, score 1-10) — unique compuesto</label></li>
+        <li><input type="checkbox" id="t-2-8-2"><label for="t-2-8-2"><span class="file">POST /animes/:id/rating</span> (upsert)</label></li>
+        <li><input type="checkbox" id="t-2-8-3"><label for="t-2-8-3"><span class="file">GET /animes/:id/rating/aggregate</span> (avg, count)</label></li>
+        <li><input type="checkbox" id="t-2-8-4"><label for="t-2-8-4">Columna denormalizada <span class="file">anime.avgRating</span> recalculada vía trigger o evento</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.9 Módulo <code>comments</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-9-1"><label for="t-2-9-1">Entity <span class="file">Comment</span> (userId, animeId, body, parentId, createdAt)</label></li>
+        <li><input type="checkbox" id="t-2-9-2"><label for="t-2-9-2">Sanitización del <span class="file">body</span> (xss) + max 1000 chars</label></li>
+        <li><input type="checkbox" id="t-2-9-3"><label for="t-2-9-3"><span class="file">POST /animes/:id/comments</span></label></li>
+        <li><input type="checkbox" id="t-2-9-4"><label for="t-2-9-4"><span class="file">GET /animes/:id/comments?cursor=</span> (paginado)</label></li>
+        <li><input type="checkbox" id="t-2-9-5"><label for="t-2-9-5"><span class="file">DELETE /comments/:id</span> (sólo autor)</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>2.10 Módulo <code>gamification</code> <span class="tag tag-b">backend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-2-10-1"><label for="t-2-10-1">Entity <span class="file">WatchedEpisode</span> (userId, episodeId, watchedAt) — unique compuesto</label></li>
+        <li><input type="checkbox" id="t-2-10-2"><label for="t-2-10-2">Entity <span class="file">Skill</span> (name, requiredLevel, type, payload jsonb)</label></li>
+        <li><input type="checkbox" id="t-2-10-3"><label for="t-2-10-3">Entity pivot <span class="file">UserSkill</span> (userId, skillId, unlockedAt)</label></li>
+        <li><input type="checkbox" id="t-2-10-4"><label for="t-2-10-4">Seed inicial de skills desde <span class="file">SKILLS_SEED</span></label></li>
+        <li><input type="checkbox" id="t-2-10-5"><label for="t-2-10-5"><span class="file">LevelService.addXp(userId, xp)</span> dentro de transacción</label></li>
+        <li><input type="checkbox" id="t-2-10-6"><label for="t-2-10-6">Emitir evento <span class="file">UserLeveledUp</span> al cruzar umbral</label></li>
+        <li><input type="checkbox" id="t-2-10-7"><label for="t-2-10-7">Listener desbloquea automáticamente skills con <span class="file">requiredLevel ≤ newLevel</span></label></li>
+        <li><input type="checkbox" id="t-2-10-8"><label for="t-2-10-8"><span class="file">POST /episodes/:id/watch</span> — idempotente, suma XP solo si era nuevo</label></li>
+        <li><input type="checkbox" id="t-2-10-9"><label for="t-2-10-9"><span class="file">GET /users/me/skills</span> (desbloqueadas + bloqueadas con preview)</label></li>
+        <li><input type="checkbox" id="t-2-10-10"><label for="t-2-10-10"><span class="file">GET /users/me/progress</span> (xp, level, nextLevelXp, episodesWatched)</label></li>
+        <li><input type="checkbox" id="t-2-10-11"><label for="t-2-10-11">Tests: subida de nivel, idempotencia de watch, desbloqueo automático</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FASE 3 — FRONTEND ============ -->
+  <section class="phase">
+    <h2>Fase 3 — Frontend Angular <span class="count tag-f">FRONTEND</span></h2>
+
+    <div class="module">
+      <h3>3.1 Core <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-1-1"><label for="t-3-1-1"><span class="file">AuthService</span> con signals (currentUser, token)</label></li>
+        <li><input type="checkbox" id="t-3-1-2"><label for="t-3-1-2"><span class="file">authInterceptor</span> (functional) inyecta Authorization Bearer</label></li>
+        <li><input type="checkbox" id="t-3-1-3"><label for="t-3-1-3"><span class="file">errorInterceptor</span> mapea 401 → logout / redirect</label></li>
+        <li><input type="checkbox" id="t-3-1-4"><label for="t-3-1-4">Guard <span class="file">authGuard</span> (CanMatchFn)</label></li>
+        <li><input type="checkbox" id="t-3-1-5"><label for="t-3-1-5"><span class="file">ApiClient</span> tipado usando <span class="file">shared-types</span></label></li>
+        <li><input type="checkbox" id="t-3-1-6"><label for="t-3-1-6"><span class="file">environment.ts</span> con API_URL</label></li>
+        <li><input type="checkbox" id="t-3-1-7"><label for="t-3-1-7">Layout shell con navbar (LevelBadge + XpBar) + outlet</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>3.2 Feature <code>auth</code> <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-2-1"><label for="t-3-2-1">Página <span class="file">login</span> con reactive form</label></li>
+        <li><input type="checkbox" id="t-3-2-2"><label for="t-3-2-2">Página <span class="file">register</span> con validaciones (email, password, username)</label></li>
+        <li><input type="checkbox" id="t-3-2-3"><label for="t-3-2-3">Manejo de errores inline (servidor + cliente)</label></li>
+        <li><input type="checkbox" id="t-3-2-4"><label for="t-3-2-4">Redirect a <span class="file">/catalog</span> tras login</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>3.3 Feature <code>catalog</code> <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-3-1"><label for="t-3-3-1"><span class="file">CatalogStore</span> con signals (filters, results, cursor, loading)</label></li>
+        <li><input type="checkbox" id="t-3-3-2"><label for="t-3-3-2">Sidebar de filtros: categoría (multi), nº capítulos (range), idioma (multi), temporada</label></li>
+        <li><input type="checkbox" id="t-3-3-3"><label for="t-3-3-3">Buscador con debounce 300ms</label></li>
+        <li><input type="checkbox" id="t-3-3-4"><label for="t-3-3-4">Sincronizar filtros con query params</label></li>
+        <li><input type="checkbox" id="t-3-3-5"><label for="t-3-3-5">Grid de <span class="file">AnimeCard</span> (cover, título, rating, capítulos)</label></li>
+        <li><input type="checkbox" id="t-3-3-6"><label for="t-3-3-6">Infinite scroll con IntersectionObserver (cursor pagination)</label></li>
+        <li><input type="checkbox" id="t-3-3-7"><label for="t-3-3-7">Estados: loading skeleton, empty, error</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>3.4 Feature <code>anime-detail</code> <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-4-1"><label for="t-3-4-1">Resolver carga inicial del anime</label></li>
+        <li><input type="checkbox" id="t-3-4-2"><label for="t-3-4-2">Hero con cover, título, géneros, status, rating agregado</label></li>
+        <li><input type="checkbox" id="t-3-4-3"><label for="t-3-4-3">Lista de episodios (virtual scroll si > 50)</label></li>
+        <li><input type="checkbox" id="t-3-4-4"><label for="t-3-4-4">Componente <span class="file">RatingStars</span> (1-10) con POST</label></li>
+        <li><input type="checkbox" id="t-3-4-5"><label for="t-3-4-5">Sección comentarios paginada con form de nuevo comentario</label></li>
+        <li><input type="checkbox" id="t-3-4-6"><label for="t-3-4-6">Botón "marcar visto" por episodio (POST watch) → muestra ganancia XP</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>3.5 Feature <code>player</code> <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-5-1"><label for="t-3-5-1">Carga servidores del episodio</label></li>
+        <li><input type="checkbox" id="t-3-5-2"><label for="t-3-5-2">Selector de <strong>idioma</strong> (chip group) → filtra servidores</label></li>
+        <li><input type="checkbox" id="t-3-5-3"><label for="t-3-5-3">Selector de <strong>servidor</strong> (tabs)</label></li>
+        <li><input type="checkbox" id="t-3-5-4"><label for="t-3-5-4"><span class="file">iframe</span> con sandbox + lazy load del embedUrl seleccionado</label></li>
+        <li><input type="checkbox" id="t-3-5-5"><label for="t-3-5-5">Auto-marcar como visto si el iframe carga > N segundos</label></li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <h3>3.6 Feature <code>profile</code> + gamificación <span class="tag tag-f">frontend</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-3-6-1"><label for="t-3-6-1">Página perfil: stats (level, xp, episodios vistos, animes puntuados)</label></li>
+        <li><input type="checkbox" id="t-3-6-2"><label for="t-3-6-2">Grid de skills (desbloqueadas / bloqueadas con requiredLevel)</label></li>
+        <li><input type="checkbox" id="t-3-6-3"><label for="t-3-6-3">Editor de avatar (composición SVG por capas, solo skills desbloqueadas)</label></li>
+        <li><input type="checkbox" id="t-3-6-4"><label for="t-3-6-4">Modal <span class="file">LevelUpDialog</span> disparado tras evento watch</label></li>
+        <li><input type="checkbox" id="t-3-6-5"><label for="t-3-6-5"><span class="file">XpBar</span> y <span class="file">LevelBadge</span> reactivos en navbar (signal global)</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FASE 4 — UI/UX ============ -->
+  <section class="phase">
+    <h2>Fase 4 — Diseño UI/UX <span class="count tag-d">DESIGN</span></h2>
+    <div class="module">
+      <h3>4.1 Sistema visual (skill ui-ux-pro-max) <span class="tag tag-d">design</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-4-1-1"><label for="t-4-1-1">Invocar skill con prompt: paleta + tipografía + tokens (dark theme anime)</label></li>
+        <li><input type="checkbox" id="t-4-1-2"><label for="t-4-1-2">Aplicar Tailwind o tokens CSS según recomendación</label></li>
+        <li><input type="checkbox" id="t-4-1-3"><label for="t-4-1-3">Diseñar y maquetar: catalog grid, anime card, anime detail, player, profile gamificado</label></li>
+        <li><input type="checkbox" id="t-4-1-4"><label for="t-4-1-4">Microinteracciones: hover cards, level-up confetti, skeleton loaders</label></li>
+        <li><input type="checkbox" id="t-4-1-5"><label for="t-4-1-5">Responsive: mobile-first, breakpoints sm/md/lg/xl</label></li>
+        <li><input type="checkbox" id="t-4-1-6"><label for="t-4-1-6">Accesibilidad: contraste AA, focus states, aria-labels</label></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FASE 5 — INTEGRACIÓN Y QA ============ -->
+  <section class="phase">
+    <h2>Fase 5 — Integración, QA y entrega <span class="count tag-i">QA</span></h2>
+    <div class="module">
+      <h3>5.1 End-to-end <span class="tag tag-i">qa</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-5-1"><label for="t-5-1"><span class="file">docker compose up -d</span> → <span class="file">migration:run</span> → <span class="file">scrape</span> exitoso</label></li>
+        <li><input type="checkbox" id="t-5-2"><label for="t-5-2">Flujo: registro → login → catálogo → detalle → ver episodio → XP sube</label></li>
+        <li><input type="checkbox" id="t-5-3"><label for="t-5-3">Filtros combinados (categoría + idioma + nº capítulos) devuelven resultados correctos</label></li>
+        <li><input type="checkbox" id="t-5-4"><label for="t-5-4">Level-up dispara modal y desbloquea skill en BBDD</label></li>
+        <li><input type="checkbox" id="t-5-5"><label for="t-5-5">Avatar personalizado se persiste y se renderiza en navbar</label></li>
+        <li><input type="checkbox" id="t-5-6"><label for="t-5-6">Tests verdes: <span class="file">nx run-many -t test</span></label></li>
+        <li><input type="checkbox" id="t-5-7"><label for="t-5-7">Lint limpio: <span class="file">nx run-many -t lint</span></label></li>
+        <li><input type="checkbox" id="t-5-8"><label for="t-5-8">Build prod: <span class="file">nx run-many -t build</span></label></li>
+      </ul>
+    </div>
+    <div class="module">
+      <h3>5.2 Entrega <span class="tag tag-i">qa</span></h3>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-5-9"><label for="t-5-9">README completo: setup, env, comandos comunes</label></li>
+        <li><input type="checkbox" id="t-5-10"><label for="t-5-10">CHANGELOG inicial</label></li>
+        <li><input type="checkbox" id="t-5-11"><label for="t-5-11">GitHub Actions: lint + test en cada PR</label></li>
+        <li><input type="checkbox" id="t-5-12"><label for="t-5-12">Push final al repo + tag <span class="file">v0.1.0</span></label></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+  const STORAGE_KEY = 'anime-gamify-tasks-v1';
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const total = checkboxes.length;
+  document.getElementById('total').textContent = total;
+
+  function updateProgress() {
+    const done = document.querySelectorAll('input[type="checkbox"]:checked').length;
+    document.getElementById('done').textContent = done;
+    document.getElementById('pct').textContent = Math.round((done / total) * 100) + '%';
+    checkboxes.forEach(cb => cb.parentElement.classList.toggle('done', cb.checked));
+  }
+
+  function save() {
+    const state = {};
+    checkboxes.forEach(cb => state[cb.id] = cb.checked);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const state = JSON.parse(raw);
+      checkboxes.forEach(cb => { if (state[cb.id]) cb.checked = true; });
+    } catch {}
+  }
+
+  function resetAll() {
+    if (!confirm('¿Resetear todo el progreso?')) return;
+    checkboxes.forEach(cb => cb.checked = false);
+    save(); updateProgress();
+  }
+
+  function expandAll(value) {
+    checkboxes.forEach(cb => cb.checked = value);
+    save(); updateProgress();
+  }
+
+  checkboxes.forEach(cb => cb.addEventListener('change', () => { save(); updateProgress(); }));
+
+  load();
+  updateProgress();
+</script>
+</body>
+</html>

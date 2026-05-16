@@ -1,0 +1,22 @@
+{
+  "name": "anime-gamify",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "start:backend": "nx serve backend",
+    "start:frontend": "nx serve frontend",
+    "build": "nx run-many -t build",
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "scrape": "nx run backend:scrape",
+    "migration:generate": "nx run backend:migration:generate",
+    "migration:run": "nx run backend:migration:run",
+    "migration:revert": "nx run backend:migration:revert",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  }
+}
