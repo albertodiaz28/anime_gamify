@@ -10,7 +10,10 @@ import { AnimesModule } from '../modules/animes/animes.module';
 import { AuthModule } from '../modules/auth/auth.module';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { CategoriesModule } from '../modules/categories/categories.module';
+import { CommentsModule } from '../modules/comments/comments.module';
 import { EpisodesModule } from '../modules/episodes/episodes.module';
+import { GamificationModule } from '../modules/gamification/gamification.module';
+import { RatingsModule } from '../modules/ratings/ratings.module';
 import { UsersModule } from '../modules/users/users.module';
 
 @Module({
@@ -24,6 +27,9 @@ import { UsersModule } from '../modules/users/users.module';
     CategoriesModule,
     AnimesModule,
     EpisodesModule,
+    GamificationModule,
+    RatingsModule,
+    CommentsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
