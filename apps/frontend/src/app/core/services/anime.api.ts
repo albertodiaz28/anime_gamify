@@ -5,6 +5,9 @@ import type {
   AnimeCard,
   AnimeDetail,
   CatalogQuery,
+  Category,
+  Episode,
+  Server,
 } from '@anime-gamify/shared-types';
 import { API_URL } from './api.config';
 
@@ -28,10 +31,22 @@ export class AnimeApi {
     return this.http.get<AnimeDetail>(`${this.apiUrl}/animes/${id}`);
   }
 
+  getCategories(): Observable<Category[]> {
+    return this.http.get<Category[]>(`${this.apiUrl}/categories`);
+  }
+
+  getEpisode(episodeId: string): Observable<Episode> {
+    return this.http.get<Episode>(`${this.apiUrl}/episodes/${episodeId}`);
+  }
+
+  getEpisodeServers(episodeId: string): Observable<Server[]> {
+    return this.http.get<Server[]>(`${this.apiUrl}/episodes/${episodeId}/servers`);
+  }
+
   private buildParams(query: CatalogQuery): HttpParams {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null) {
+      if (value === undefined || value === null || value === '') {
         continue;
       }
       if (Array.isArray(value)) {

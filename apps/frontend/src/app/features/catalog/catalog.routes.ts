@@ -4,6 +4,6 @@ export const catalogRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./catalog-placeholder.component').then((m) => m.CatalogPlaceholderComponent),
+      import('./catalog-page.component').then((m) => m.CatalogPageComponent),
   },
 ];
