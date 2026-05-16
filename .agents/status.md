@@ -1,1 +1,2 @@
-- [START] feat/backend-scraper — starting scraping module
+- [START] feat/backend-domain — starting animes + episodes
+- [DONE] feat/backend-domain — pending-commit — 19 files

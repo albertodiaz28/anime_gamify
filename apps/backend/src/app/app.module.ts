@@ -6,9 +6,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
 import { typeOrmConfig } from '../config/typeorm.config';
+import { AnimesModule } from '../modules/animes/animes.module';
 import { AuthModule } from '../modules/auth/auth.module';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { CategoriesModule } from '../modules/categories/categories.module';
+import { EpisodesModule } from '../modules/episodes/episodes.module';
 import { UsersModule } from '../modules/users/users.module';
 
 @Module({
@@ -20,6 +22,8 @@ import { UsersModule } from '../modules/users/users.module';
     AuthModule,
     UsersModule,
     CategoriesModule,
+    AnimesModule,
+    EpisodesModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
