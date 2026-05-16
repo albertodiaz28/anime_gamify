@@ -1,0 +1,14 @@
+{
+  "name": "shared-types",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared-types/src",
+  "projectType": "library",
+  "targets": {
+    "lint": { "executor": "@nx/eslint:lint" },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": { "jestConfig": "libs/shared-types/jest.config.ts", "passWithNoTests": true }
+    }
+  },
+  "tags": ["scope:shared", "type:lib"]
+}

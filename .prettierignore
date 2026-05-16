@@ -1,0 +1,9 @@
+node_modules
+dist
+.nx
+.angular
+coverage
+*.min.js
+*.min.css
+PLAN.html
+TASKS.html

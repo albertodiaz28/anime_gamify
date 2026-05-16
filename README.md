@@ -15,27 +15,28 @@ MVP de plataforma de anime con scraping de AnimeFLV y sistema de gamificación.
 - [rules.md](rules.md) — reglas obligatorias para cualquier agente que toque el código
 
 ## Setup local
+
+> **Importante:** este proyecto usa **pnpm**. No uses `npm`/`yarn`.
+> Si no lo tienes: `corepack enable && corepack prepare pnpm@latest --activate`.
+
 ```bash
 # 1. Skill UI (una sola vez)
-npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+pnpm dlx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
 
-# 2. Inicializar monorepo Nx (si aún no se ha hecho)
-#    Ver sección 1 de PLAN.md
+# 2. Dependencias
+pnpm install
 
-# 3. Dependencias
-npm install
-
-# 4. Base de datos
+# 3. Base de datos
 cp .env.example .env
-npm run db:up
-npm run migration:run
+pnpm db:up
+pnpm migration:run
 
-# 5. Scraping inicial (one-shot)
-npm run scrape
+# 4. Scraping inicial (one-shot)
+pnpm scrape
 
-# 6. Arrancar apps
-npm run start:backend     # http://localhost:3000
-npm run start:frontend    # http://localhost:4200
+# 5. Arrancar apps
+pnpm start:backend     # http://localhost:3000
+pnpm start:frontend    # http://localhost:4200
 ```
 
 ## Estructura

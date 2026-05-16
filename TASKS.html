@@ -125,8 +125,9 @@
     <div class="module">
       <h3>0.1 Setup base <span class="tag tag-i">infra</span></h3>
       <ul class="tasks">
-        <li><input type="checkbox" id="t-0-1"><label for="t-0-1">Instalar skill UI: <span class="file">npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max</span></label></li>
-        <li><input type="checkbox" id="t-0-2"><label for="t-0-2">Crear monorepo Nx: <span class="file">npx create-nx-workspace@latest anime-gamify --preset=apps</span></label></li>
+        <li><input type="checkbox" id="t-0-1"><label for="t-0-1">Activar pnpm vía corepack: <span class="file">corepack enable &amp;&amp; corepack prepare pnpm@latest --activate</span></label></li>
+        <li><input type="checkbox" id="t-0-1b"><label for="t-0-1b">Instalar skill UI: <span class="file">pnpm dlx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max</span></label></li>
+        <li><input type="checkbox" id="t-0-2"><label for="t-0-2">Instalar dependencias del monorepo: <span class="file">pnpm install</span> (estructura ya creada)</label></li>
         <li><input type="checkbox" id="t-0-3"><label for="t-0-3">Añadir plugin Angular: <span class="file">nx add @nx/angular</span></label></li>
         <li><input type="checkbox" id="t-0-4"><label for="t-0-4">Añadir plugin NestJS: <span class="file">nx add @nx/nest</span></label></li>
         <li><input type="checkbox" id="t-0-5"><label for="t-0-5">Generar app frontend: <span class="file">nx g @nx/angular:app frontend --routing --style=scss --standalone</span></label></li>

@@ -4,6 +4,7 @@ All agents working on this codebase MUST follow these rules. Include this file i
 agent prompt.
 
 ## Architecture
+- IMPORTANT, use pnpm to install packages
 - Modularize aggressively. One responsibility per file/class/function.
 - Backend: feature-based modules (NestJS). Each module owns its controller, service,
   repository, DTOs and entity. No cross-module imports except via the module's public
